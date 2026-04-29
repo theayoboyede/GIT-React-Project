@@ -13,70 +13,59 @@ export default function HomeScreen() {
   const [task, setTask] = useState('');
   const [tasks, setTasks] = useState<string[]>([]);
 
-  // Load tasks from storage
   useEffect(() => {
     loadTasks();
   }, []);
 
-  // Save tasks whenever they change
   useEffect(() => {
     saveTasks(tasks);
   }, [tasks]);
 
   const loadTasks = async () => {
-    try {
-      const storedTasks = await AsyncStorage.getItem('tasks');
-      if (storedTasks !== null) {
-        setTasks(JSON.parse(storedTasks));
-      }
-    } catch (error) {
-      console.log('Error loading tasks:', error);
-    }
+    const stored = await AsyncStorage.getItem('tasks');
+    if (stored) setTasks(JSON.parse(stored));
   };
 
   const saveTasks = async (tasks: string[]) => {
-    try {
-      await AsyncStorage.setItem('tasks', JSON.stringify(tasks));
-    } catch (error) {
-      console.log('Error saving tasks:', error);
-    }
+    await AsyncStorage.setItem('tasks', JSON.stringify(tasks));
   };
 
   const addTask = () => {
-    if (task.trim() === '') return;
-
-    setTasks([...tasks, task]);
+    if (!task.trim()) return;
+    setTasks([task, ...tasks]); // newest on top
     setTask('');
   };
 
   const deleteTask = (index: number) => {
-    const newTasks = tasks.filter((_, i) => i !== index);
-    setTasks(newTasks);
+    setTasks(tasks.filter((_, i) => i !== index));
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My To-Do App</Text>
+      <Text style={styles.header}>My Tasks</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Enter a task..."
-        value={task}
-        onChangeText={setTask}
-      />
+      <View style={styles.inputWrapper}>
+        <TextInput
+          placeholder="What needs to be done?"
+          placeholderTextColor="#888"
+          style={styles.input}
+          value={task}
+          onChangeText={setTask}
+        />
 
-      <Pressable style={styles.button} onPress={addTask}>
-        <Text style={styles.buttonText}>Add Task</Text>
-      </Pressable>
+        <Pressable style={styles.addBtn} onPress={addTask}>
+          <Text style={styles.addText}>+</Text>
+        </Pressable>
+      </View>
 
-      <ScrollView style={styles.taskContainer}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         {tasks.map((item, index) => (
           <Pressable
             key={index}
             onPress={() => deleteTask(index)}
-            style={styles.taskItem}
+            style={styles.card}
           >
-            <Text style={styles.taskText}>• {item}</Text>
+            <Text style={styles.taskText}>{item}</Text>
           </Pressable>
         ))}
       </ScrollView>
@@ -87,49 +76,54 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#0f0f0f',
+    paddingTop: 60,
+    paddingHorizontal: 20,
   },
 
-  title: {
-    fontSize: 26,
+  header: {
+    fontSize: 32,
     fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 20,
+  },
+
+  inputWrapper: {
+    flexDirection: 'row',
     marginBottom: 20,
   },
 
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-
-  button: {
-    backgroundColor: '#111',
+    flex: 1,
+    backgroundColor: '#1c1c1e',
     padding: 15,
-    borderRadius: 8,
-    marginBottom: 20,
+    borderRadius: 12,
+    color: '#fff',
   },
 
-  buttonText: {
-    color: '#fff',
-    textAlign: 'center',
+  addBtn: {
+    marginLeft: 10,
+    backgroundColor: '#fff',
+    width: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  addText: {
+    fontSize: 24,
     fontWeight: 'bold',
   },
 
-  taskContainer: {
-    marginTop: 10,
-  },
-
-  taskItem: {
-    backgroundColor: '#f2f2f2',
-    padding: 12,
-    borderRadius: 6,
-    marginBottom: 10,
+  card: {
+    backgroundColor: '#1c1c1e',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 12,
   },
 
   taskText: {
+    color: '#fff',
     fontSize: 16,
   },
 });
