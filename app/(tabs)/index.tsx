@@ -1,11 +1,47 @@
-import { View, Text, StyleSheet, Pressable, TextInput, ScrollView } from 'react-native';
-import { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  TextInput,
+  ScrollView,
+} from 'react-native';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const [task, setTask] = useState('');
   const [tasks, setTasks] = useState<string[]>([]);
 
-  // Add task
+  // Load tasks from storage
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  // Save tasks whenever they change
+  useEffect(() => {
+    saveTasks(tasks);
+  }, [tasks]);
+
+  const loadTasks = async () => {
+    try {
+      const storedTasks = await AsyncStorage.getItem('tasks');
+      if (storedTasks !== null) {
+        setTasks(JSON.parse(storedTasks));
+      }
+    } catch (error) {
+      console.log('Error loading tasks:', error);
+    }
+  };
+
+  const saveTasks = async (tasks: string[]) => {
+    try {
+      await AsyncStorage.setItem('tasks', JSON.stringify(tasks));
+    } catch (error) {
+      console.log('Error saving tasks:', error);
+    }
+  };
+
   const addTask = () => {
     if (task.trim() === '') return;
 
@@ -13,7 +49,6 @@ export default function HomeScreen() {
     setTask('');
   };
 
-  // Delete task
   const deleteTask = (index: number) => {
     const newTasks = tasks.filter((_, i) => i !== index);
     setTasks(newTasks);
